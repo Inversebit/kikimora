@@ -39,35 +39,8 @@ String cert_fingerprint = "";
 bool shouldPing = false;
 
 //Simple page
-const char PROGMEM webpageRoot[] = "\
-<!DOCTYPE html>\
-<html>\
-  <body>\
-    <h1>Kikimora</h1>\
-    <h2>ESP8266-based Systems Monitoring Service</h2>\
-    <p>Please enter URL to monitor. In case it's an HTTPS webpage do also indicate the page certificate's SHA1 fingerprint below.</p>\
-    <form action=\"/submit\" method=\"POST\">\
-      <fieldset>\
-        <legend>Monitoring target information:</legend>\
-        URL to monitor:<br>\
-        <input type=\"text\" name=\"url\" value=\"@@current_url\" autofocus required/><br><br>\
-        Cert SHA1 fingerprint:<br>\
-        <input type=\"text\" name=\"fingerprint\" value=\"@@current_fingerprint\"/><br><br>\
-        <input type=\"submit\" value=\"Submit\">\
-      </fieldset>\
-    </form>\
-  </body>\
-</html>";
-
-const char PROGMEM webpageForm[] = "\
-<!DOCTYPE html>\
-<html>\
-  <body>\
-    <h1>Kikimora</h1>\
-    <h2>ESP8266-based Systems Monitoring Service</h2>\
-    <p>@@message</p>\
-  </body>\
-</html>";
+const char PROGMEM webpageRoot[] = "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\"><head><body><div class=\"container\"><div class=\"page-header\"><h1>Kikimora <small>ESP8266-based Systems Monitoring Service</small></h1></div><div class=\"alert alert-info\" role=\"alert\"><p>Please enter URL to monitor. In case it's an HTTPS webpage do also indicate the page certificate's SHA1 fingerprint below.</p></div><div class=\"panel panel-default\"><div class=\"panel-heading\">Monitoring target information:</div><div class=\"panel-body\"><form action=\"/submit\" method=\"POST\"><div class=\"form-group\"><label for=\"monitoring-url\">URL to monitor:</label><input type=\"text\" class=\"form-control\" id=\"monitoring-url\" placeholder=\"http://example.com\" name=\"url\" value=\"@@current_url\" autofocus required></div><div class=\"form-group\"><label for=\"fingerprint\">Cert SHA1 fingerprint:</label><input type=\"text\" class=\"form-control\" id=\"fingerprint\" placeholder=\"0A 1B 2C 3D 4E 5F ...\" name=\"fingerprint\" value=\"@@current_fingerprint\"></div><button type=\"submit\" class=\"btn btn-default\">Submit</button></form></div></div></div></body></html>";
+const char PROGMEM webpageFormRes[] = "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\"><head><body><div class=\"container\"><div class=\"page-header\"><h1>Kikimora <small>ESP8266-based Systems Monitoring Service</small></h1></div><div class=\"alert alert-@@res-status\" role=\"alert\"><p>@@res-message</p></div><a href=\"/\" class=\"btn btn-default btn-primary\" role=\"button\">Return to the main page</a></div></body></html>";
 
 /* SETUP FUNCTIONS */
 //SERVER FUNCTIONS
@@ -104,14 +77,17 @@ void handleForm()
     formOk = true;
   }
 
-  String res = "Info <b>NOT</b> saved. An error has occurred.";
+  String stat = "danger";
+  String res = "Target <b>NOT</b> saved. An error has occurred.";
   if(formOk)
   {
-    res = "Info <b>SUCCESSFULLY</b> saved. <a href=\"/\">Return to index</a>.";
+    stat = "success";
+    res = "New monitoring target <b>SUCCESSFULLY</b> saved.";
   }
   
-  String msg = String(webpageForm);
-  msg.replace("@@message", res);
+  String msg = String(webpageFormRes);
+  msg.replace("@@res-status", stat);
+  msg.replace("@@res-message", res);
   server.send(200, "text/html", msg);
 }
 
