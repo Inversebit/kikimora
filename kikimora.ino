@@ -111,7 +111,7 @@ void timerCallback(void *pArg) {
 
 void user_init(void) {
   os_timer_setfn(&myTimer, timerCallback, NULL);
-  os_timer_arm(&myTimer, 5000, true);
+  os_timer_arm(&myTimer, 10000, true);
 }
 
 //OTHER SETUP
@@ -189,6 +189,7 @@ bool pingWeb()
   if(dest_page.length() == 0)
   {
     blinkLED(rled, 5, 100);
+    return false;
   }
   
   if(cert_fingerprint.length() == 0)
@@ -222,7 +223,7 @@ void loop()
   
   if (shouldPing == true)
   {
-    blinkLED(litPin(), 2, 250);
+    blinkLED(litPin(), 2, 75);
     bool isUp = pingWeb();
     showStatus(isUp);
     shouldPing = false;
