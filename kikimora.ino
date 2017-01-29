@@ -19,9 +19,11 @@ extern "C" {
 }
 
 /* CONSTANTS DEFINITIONS */
-
 const int gled = 2;
 const int rled = 0;
+
+const char* ssid = "SSID";
+const char* password = "p4s5w0rd";
 
 /* GLOBAL VARS */
 //Timer
@@ -111,7 +113,7 @@ void timerCallback(void *pArg) {
 
 void user_init(void) {
   os_timer_setfn(&myTimer, timerCallback, NULL);
-  os_timer_arm(&myTimer, 10000, true);
+  os_timer_arm(&myTimer, 20000, true);
 }
 
 //OTHER SETUP
@@ -123,7 +125,7 @@ void setupPins()
 
 void setupWiFiConn()
 {
-  WiFi.begin("SSID", "PASSWD");
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
@@ -229,5 +231,5 @@ void loop()
     shouldPing = false;
   }
    
-  yield();  // or delay(0);
+  yield();
 }
