@@ -113,7 +113,7 @@ void timerCallback(void *pArg) {
 
 void user_init(void) {
   os_timer_setfn(&myTimer, timerCallback, NULL);
-  os_timer_arm(&myTimer, 20000, true);
+  os_timer_arm(&myTimer, 15000, true);
 }
 
 //OTHER SETUP
@@ -129,14 +129,27 @@ void setupWiFiConn()
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
+
+  IPAddress ip = WiFi.localIP();
+  int lastOctet = ip[3];
+  
+  blinkLED(rled, 1, 2000);
+
+  do{          
+      int blinky = lastOctet % 10;
+      lastOctet /= 10;
+          
+      blinkLED(gled, blinky, 400);
+      blinkLED(rled, 1, 500);
+  }while(lastOctet);  
 }
 
 //*THE* SETUP
 void setup() {
   setupPins();
-  user_init();
   setupWiFiConn();
   setupServer();
+  user_init();
 }
 
 /* LED FUNCTIONS */
