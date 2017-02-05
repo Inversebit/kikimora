@@ -38,7 +38,11 @@ String dest_page = "";
 String cert_fingerprint = "";
 
 //Control vars
+bool lastStatusUp = false;
 bool shouldPing = false;
+int nblbCountBack = 0;
+int nblbLED = 0;
+int nblbRate = 0;
 
 //Simple page
 const char PROGMEM webpageRoot[] = "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\"><head><body><div class=\"container\"><div class=\"page-header\"><h1>Kikimora <small>ESP8266-based Systems Monitoring Service</small></h1></div><div class=\"alert alert-info\" role=\"alert\"><p>Please enter URL to monitor. In case it's an HTTPS webpage do also indicate the page certificate's SHA1 fingerprint below.</p></div><div class=\"panel panel-default\"><div class=\"panel-heading\">Monitoring target information:</div><div class=\"panel-body\"><form action=\"/submit\" method=\"POST\"><div class=\"form-group\"><label for=\"monitoring-url\">URL to monitor:</label><input type=\"text\" class=\"form-control\" id=\"monitoring-url\" placeholder=\"http://example.com\" name=\"url\" value=\"@@current_url\" autofocus required></div><div class=\"form-group\"><label for=\"fingerprint\">Cert SHA1 fingerprint:</label><input type=\"text\" class=\"form-control\" id=\"fingerprint\" placeholder=\"0A 1B 2C 3D 4E 5F ...\" name=\"fingerprint\" value=\"@@current_fingerprint\"></div><button type=\"submit\" class=\"btn btn-default\">Submit</button></form></div></div></div></body></html>";
@@ -181,19 +185,46 @@ void blinkLED(int ledPin, int times, int blinkDuration)
   }
 }
 
+void blinkLEDNoBlock(int ledPin, int times, int blinkDuration)
+{
+  nblbCountBack = times;
+  nblbLED = ledPin;
+  nblbRate = blinkDuration;
+}
+
+void doNoBlockBlink()
+{
+  if (nblbCountBack > 0)
+  {
+    blinkLED(nblbLED, 1, nblbRate);
+    nblbCountBack--;
+  }
+}
+
 void showStatus(bool isUp)
 {
+  //Decide which LED to light up
+  int ledPinToLight = 0;
+  
+  if(isUp){
+    ledPinToLight = gled;
+  }
+  else{
+    ledPinToLight = rled;
+  }
+
+  //Do light up the chosen pin
   digitalWrite(gled, LOW);
   digitalWrite(rled, LOW);
-  
-  if(isUp)
+  digitalWrite(ledPinToLight, HIGH);
+
+  //If status has changed blink the newly lit pin
+  if(lastStatusUp != isUp)
   {
-    digitalWrite(gled, HIGH);
+    blinkLEDNoBlock(ledPinToLight, 10, 250);
   }
-  else
-  {
-    digitalWrite(rled, HIGH);
-  }
+
+  lastStatusUp = isUp;
 }
 
 /* HTPP FUNCTIONS */
@@ -235,10 +266,11 @@ bool pingWeb()
 void loop() 
 {
   server.handleClient();
+
+  doNoBlockBlink();
   
   if (shouldPing == true)
   {
-    blinkLED(litPin(), 2, 75);
     bool isUp = pingWeb();
     showStatus(isUp);
     shouldPing = false;
